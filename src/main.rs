@@ -7,9 +7,9 @@ fn sleep(millis: u64) {
 fn parse_delay(token: &str) -> Option<u64> {
     let stripped = token
         .trim_matches(|c| c == ' ' || c == '-')
-        .strip_prefix("{")?
-        .strip_suffix("}")?;
-    if stripped.chars().all(|c| c.is_digit(10)) {
+        .strip_prefix('{')?
+        .strip_suffix('}')?;
+    if stripped.chars().all(|c| c.is_ascii_digit()) {
         stripped.parse::<u64>().ok()
     } else {
         None
@@ -36,9 +36,9 @@ fn main() {
                     sleep(delay);
                     last_output = LastOutput::Delay;
                 } else {
-                    let mut cutted = token.strip_suffix("-").unwrap_or(token);
+                    let mut cutted = token.strip_suffix(' ').unwrap_or(token);
                     if i >= tokens.len() {
-                        cutted = cutted.strip_suffix(" ").unwrap_or(cutted);
+                        cutted = cutted.strip_suffix(' ').unwrap_or(cutted);
                     }
                     print!("{}", cutted);
                     let _ = std::io::stdout().flush();
@@ -51,7 +51,7 @@ fn main() {
             if last_output != LastOutput::Delay {
                 sleep(DELAY_LINE);
             }
-            print!("\n");
+            println!();
         }
     }
 }
