@@ -4,6 +4,18 @@ fn sleep(millis: u64) {
     std::thread::sleep(std::time::Duration::from_millis(millis));
 }
 
+fn parse_delay(token: &str) -> Option<u64> {
+    let stripped = token
+        .trim_matches(|c| c == ' ' || c == '-')
+        .strip_prefix("{")?
+        .strip_suffix("}")?;
+    if stripped.chars().all(|c| c.is_digit(10)) {
+        stripped.parse::<u64>().ok()
+    } else {
+        None
+    }
+}
+
 #[derive(PartialEq)]
 enum LastOutput {
     Delay,
@@ -16,16 +28,11 @@ const DELAY_LINE: u64 = 1000;
 fn main() {
     if let Ok(lyrics) = std::fs::read_to_string("lyrics.dat") {
         let mut last_output = LastOutput::Text;
-        let delay_regex = regex::Regex::new(r"\{(\d+)\}").unwrap();
         let lines: Vec<&str> = lyrics.split('\n').collect();
         for line in lines {
             let tokens: Vec<&str> = line.split_inclusive(&[' ', '-']).collect();
             for (i, token) in tokens.iter().enumerate() {
-                if delay_regex.is_match(token) {
-                    let delay = delay_regex
-                        .captures_iter(token)
-                        .next()
-                        .map_or(0, |c| c[1].parse::<u64>().unwrap_or(0));
+                if let Some(delay) = parse_delay(token) {
                     sleep(delay);
                     last_output = LastOutput::Delay;
                 } else {
