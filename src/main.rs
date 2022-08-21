@@ -30,17 +30,13 @@ fn main() {
         let mut last_output = LastOutput::Text;
         let lines: Vec<&str> = lyrics.split('\n').collect();
         for line in lines {
-            let tokens: Vec<&str> = line.split_inclusive(&[' ', '-']).collect();
+            let tokens: Vec<&str> = line.trim().split_inclusive(&[' ', '-']).collect();
             for (i, token) in tokens.iter().enumerate() {
                 if let Some(delay) = parse_delay(token) {
                     sleep(delay);
                     last_output = LastOutput::Delay;
                 } else {
-                    let mut cutted = token.strip_suffix(' ').unwrap_or(token);
-                    if i >= tokens.len() {
-                        cutted = cutted.strip_suffix(' ').unwrap_or(cutted);
-                    }
-                    print!("{}", cutted);
+                    print!("{}", token.strip_suffix('-').unwrap_or(token));
                     let _ = std::io::stdout().flush();
                     sleep(DELAY_WORD);
 
