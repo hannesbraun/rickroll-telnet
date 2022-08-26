@@ -25,18 +25,18 @@ enum LastOutput {
 const DELAY_WORD: u64 = 200;
 const DELAY_LINE: u64 = 1000;
 
-fn main() {
+pub fn do_not_give_me_up(mut out: Box<dyn Write>) -> std::io::Result<()> {
     if let Ok(lyrics) = std::fs::read_to_string("lyrics.dat") {
         let mut last_output = LastOutput::Text;
         let lines: Vec<&str> = lyrics.split('\n').collect();
         for line in lines {
             let tokens: Vec<&str> = line.trim().split_inclusive(&[' ', '-']).collect();
-            for (i, token) in tokens.iter().enumerate() {
+            for token in tokens.iter() {
                 if let Some(delay) = parse_delay(token) {
                     sleep(delay);
                     last_output = LastOutput::Delay;
                 } else {
-                    print!("{}", token.strip_suffix('-').unwrap_or(token));
+                    write!(&mut out, "{}", token.strip_suffix('-').unwrap_or(token))?;
                     let _ = std::io::stdout().flush();
                     sleep(DELAY_WORD);
 
@@ -47,7 +47,9 @@ fn main() {
             if last_output != LastOutput::Delay {
                 sleep(DELAY_LINE);
             }
-            println!();
+            writeln!(&mut out)?;
         }
     }
+
+    Ok(())
 }
